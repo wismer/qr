@@ -1,0 +1,13 @@
+{
+  "name": "qr",
+  "version": "0.0.1",
+  "scripts": {
+    "build": "babel public/js/pre-compiled --watch --out-dir public/js/compiled"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.0.0",
+    "babel-core": "^6.4.5",
+    "babel-loader": "^6.2.1",
+    "babel-preset-es2015": "^6.3.13"
+  }
+}

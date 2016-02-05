@@ -1,0 +1,12 @@
+.bit {
+  height: 50px;
+  width: 50px;
+}
+
+.bit-less {
+  background-color: white;
+}
+
+.bit-full {
+  background-color: black;
+}
