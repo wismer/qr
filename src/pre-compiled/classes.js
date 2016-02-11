@@ -1,7 +1,4 @@
-// const DIRECTION = {
-//   top: [[1,2], [4,3], [6,5], [8,7]],
-//   left:
-// };
+
 
 const LEFT = [0, -1, 0, -1, -2, -3, -2, -3];
 const UP   = ['w', 'ne', 'w', 'ne', 'w', 'nw', 'w'];
@@ -31,171 +28,119 @@ function encodingRules(type) {
   }
 }
 
-class Tile {
-  constructor(bit, connections) {
-    this.x = bit.x;
-    this.y = bit.y;
-    this.connections = connections;
-    this.isDark = bit.x % 2 !== 0;
-  }
 
-  color(bit) {
-    if (this.isDark) {
-      this.bit = bit === '0';
-    } else {
-      this.bit = bit === '1';
-    }
-  }
+function convertToInteger(str) {
+  return str.split('').map(convertToBits);
 }
 
-class Layer {
-  up(grid, chunk, coords) {
-    var { point, rowLength } = coords;
-    var tiles = [];
-    for (var i = 0; i < (chunk.size / 2); i++) {
-      var [l, r] = [chunk.bits[i], chunk.bits[i + 1]];
-      var rpt = point - (i * rowLength) - 1;
-      var lpt = point - (i * rowLength) - 2;
-      grid.get(rpt).color(l);
-      grid.get(lpt).color(r);
-      //
-      // if (i % 2 === 0) {
-      //   // even row -> 0 is "dark" 1 is "light"
-      //   rtile.bit = l === '0';
-      //   ltile.bit = r === '0';
-      // } else {
-      //   // odd row -> 1 is "dark" 0 is "light"
-      //   rtile.bit = l === '1';
-      //   ltile.bit = r === '1';
-      // }
-      //
-      // tiles.push(rtile);
-      // tiles.push(ltile);
-    }
 
-    console.log(tiles);
-
-    return tiles;
-  }
-
-  left(grid, chunk, coords) {
-    var { point, rowLength } = coords;
-    LEFT.forEach((mod, idx) => {
-      var bit = chunk.bits[idx];
-      var tile = grid.get(point + mod - rowLength);
-      tile.color(bit);
-    });
-  }
+function getNeighborTemplate(size) {
+  return [
+    -(size + 1),
+    -size,
+    -size + 1,
+    -1,
+    1,
+    size - 1,
+    size,
+    size + 1
+  ];
 }
 
-function bitwise(operator, string, operand) {
-  var code = string.charCodeAt(0);
-  var value;
-  if (operator === '^') {
-    value = code ^ operand;
-  } else if (operator === '<<') {
-    value = code << operand;
-  } else if (operator === '>>') {
-    value = code >> operand;
-  } else if (operator === '&') {
-    value = code & operand;
-  } else if (operator === '|') {
-    value = code | operand;
-  } else if (operator === '>>>') {
-    value = code >>> operand;
+function convertToBits(char) {
+  char = char.charCodeAt(0).toString(2);
+  return "0".repeat(8 - char.length) + char;
+}
+
+function getFixture(grid, n) {
+  return grid.filter(tile => tile.fixture === n);
+}
+
+function setupFixture(fixture) {
+  fixture.forEach((tile, idx) => {
+    var [row, col] = [Math.floor(idx / 7), idx % 7];
+    if ((row === 1 || row === 5) && (col > 0 && col < 6)) {
+      tile.bit = false;
+    } else if ((col === 1 || col === 5) && (row > 0 && row < 6)) {
+      tile.bit = false;
+    }
+  });
+}
+
+function setupFixtures(grid) {
+  var fixtures = [getFixture(grid, 1), getFixture(grid, 2), getFixture(grid, 3)];
+  fixtures.forEach(fixture => setupFixture(fixture));
+  return grid;
+}
+
+function prerender(tile) {
+  const { col, row } = tile;
+  const colSection = Math.ceil((col + 1) / 7);
+  const rowSection = Math.ceil((row + 1) / 7);
+
+  if (rowSection === 1 && colSection === 1) {
+    tile.isFixed = true;
+    tile.fixture = 1;
+  } else if (rowSection === 1 && colSection === 3) {
+    tile.isFixed = true;
+    tile.fixture = 2;
+  } else if (rowSection === 3 && colSection === 1) {
+    tile.fixture = 3;
+    tile.isFixed = true;
   } else {
-    value = code;
+    tile.isFixed = false;
   }
 
-  var binaryOfString = code.toString(2);
-  var binaryOfChange = value.toString(2);
-  return `${string}, as number ${code} -> ${value}, went from ${binaryOfString} to ${binaryOfChange}`;
+  tile.bit = tile.isFixed;
+
+  return tile;
 }
 
-class QRCode {
-  constructor(encodingType, message, size) {
-    this._encoding  = encodingRules(encodingType);
-    this.message    = message;
-    this.size       = size || 21;
-    this.fixed      = false;
-    this.grid       = this._buildGrid();
-    this.layerMaker = new Layer();
+function transformGrid(grid, sqrt, bits=[]) {
+  setupFixtures(grid);
+  for (var i = 0; i < grid.length; i += sqrt) {
+    var row = grid.slice(i, i + sqrt);
+    bits.push(row);
   }
 
-  _buildGrid() {
-    var map = new Map();
-    var tileCount = this.size * this.size;
-    var tile, connections = {};
-    for (var i = 0; i < tileCount; i++) {
-      var x          = Math.floor(i / this.size);
-      var remainder  = i - (x * this.size);
-      var y          = remainder === this.size ? 0 : remainder;
-      connections.isKeystone = x % 6 === 0 && y % 6 === 0;
-      connections.diag = {
-        ne: (i + 1) - this.size,
-        nw: (i - 1) - this.size,
-        se: (i + 1) + this.size,
-        sw: (i - 1) + this.size
-      };
-      connections.linear = {
-        up: i - this.size,
-        down: i + this.size,
-        left: i - 1,
-        right: i + 1
-      };
-
-      tile      = new Tile({ x, y }, connections);
-      map.set(i, tile);
-    }
-
-    return map;
-  }
-
-  setBlock() {
-    var { layerMaker, grid } = this;
-
-    layerMaker.up(grid, { size: 8, bits: '01110111' }, { point: 441, rowLength: 21 });
-  }
-
-  setFixtures() {
-    var { grid, encoding, size } = this;
-    var boundary = (Math.sqrt(size) / 3) - 1;
-
-
-    for (var [key, tile] of grid.entries()) {
-      if (key <= boundary) {
-
-      }
-    }
-  }
-
-  setEncoding() {
-    var grid = this.grid;
-  }
-
-  encode() {
-    var chars = this.message.split('');
-    this.encoding = chars.map(b => {
-      var binary = b.charCodeAt(0).toString(2);
-      if (binary.length === 7) {
-        binary = '0'  + binary;
-      } else if (binary.length === 6) {
-        binary = '00' + binary;
-      }
-
-      return binary.split('');
-    });
-  }
-
-  row(x) {
-    return this.encoding[x];
-  }
-
-  column(y) {
-    // return this.encoding.map((row, i) => {
-    //   return row[i];
-    // });
-  }
+  return bits;
 }
 
-export default QRCode;
+function createGrid(x, y) {
+  if (x !== y) {
+    throw "No";
+  }
+  const squared   = Math.pow(x, 2);
+  const neighbors = getNeighborTemplate(x);
+
+  let grid = [];
+
+  for (var i = 0; i < squared; i++) {
+    var row  = Math.floor(i / x),
+        col  = i % x,
+        tile = neighbors.map(n => n + i),
+        details = {
+          bit: false,
+          neighbors: tile,
+          flip: row % 2 === 0,
+          isFixed: false,
+          col: col,
+          row: row
+        };
+    grid.push(details);
+  }
+  grid = grid.map(prerender);
+  return transformGrid(grid, x);
+}
+
+function createQRCode(string) {
+  var bits = convertToInteger(string);
+  return bits;
+}
+
+
+export {
+  getNeighborTemplate,
+  createGrid,
+  createQRCode
+};

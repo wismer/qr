@@ -1,6 +1,7 @@
 .bit {
   height: 50px;
   width: 50px;
+  padding: 0px;
 }
 
 .bit-less {
@@ -9,4 +10,8 @@
 
 .bit-full {
   background-color: black;
+}
+
+.row {
+  margin: 0 auto;
 }

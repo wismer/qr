@@ -48,10 +48,6 @@
 
 	var _classes = __webpack_require__(1);
 
-	var _classes2 = _interopRequireDefault(_classes);
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
 	function convertToBin(str) {
 	  var binary = [];
 	  for (var i = 0; i < str.length; i++) {
@@ -89,8 +85,8 @@
 	  displayName: 'Row',
 	  render: function render() {
 	    var baseClass = 'bit ';
-	    var blocks = this.props.bit.map(function (bit, i) {
-	      var bitClassName = baseClass + (bit ? 'bit-less' : 'bit-full') + ' col-xs-6';
+	    var blocks = this.props.row.map(function (tile, i) {
+	      var bitClassName = baseClass + (tile.bit ? 'bit-full' : 'bit-less') + ' col-xs-6';
 	      return React.createElement(Block, { key: i, bit: bitClassName });
 	    });
 	    return React.createElement(
@@ -104,28 +100,12 @@
 	var QR = React.createClass({
 	  displayName: 'QR',
 	  getInitialState: function getInitialState() {
-	    var bits = [];
-	    for (var i = 0; i < 21; i++) {
-	      // bits.push(makeRow(i));
-	    }
-	    return { bits: bits };
-	  },
-	  shuffleBits: function shuffleBits(bits) {
-	    this.setState({
-	      bits: this.state.bits.map(function (bit) {
-	        return bit.map(function (b) {
-	          var n = Math.random();
-	          return n > 0.5;
-	        });
-	      })
-	    });
-	  },
-	  componentWillMount: function componentWillMount() {
-	    // setInterval(this.shuffleBits, 1000);
+	    return {};
+	    // return { grid }
 	  },
 	  render: function render() {
-	    var bits = this.state.bits.map(function (bit, i) {
-	      return React.createElement(Row, { bit: bit, key: i });
+	    var bits = this.props.grid.map(function (row, i) {
+	      return React.createElement(Row, { row: row, key: i });
 	    });
 	    return React.createElement(
 	      'div',
@@ -137,12 +117,19 @@
 
 	convertToBin('matt');
 
-	function showReact() {
-	  ReactDOM.render(React.createElement(QR, null), document.getElementById('render'));
+	function showReact(size) {
+	  var grid = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+
+	  grid = (0, _classes.createGrid)(21, 21);
+	  ReactDOM.render(React.createElement(QR, { size: size, grid: grid }), document.getElementById('render'));
+	  return grid;
 	}
 
+	// window.reactify = showReact;
 	window.onload = showReact;
-	window.QRCode = _classes2.default;
+	window.getNeighborTemplate = _classes.getNeighborTemplate;
+	window.createGrid = _classes.createGrid;
+	window.createQRCode = _classes.createQRCode;
 
 /***/ },
 /* 1 */
@@ -150,20 +137,9 @@
 
 	'use strict';
 
-	var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-	var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	// const DIRECTION = {
-	//   top: [[1,2], [4,3], [6,5], [8,7]],
-	//   left:
-	// };
 
 	var LEFT = [0, -1, 0, -1, -2, -3, -2, -3];
 	var UP = ['w', 'ne', 'w', 'ne', 'w', 'nw', 'w'];
@@ -190,236 +166,120 @@
 	  }
 	}
 
-	var Tile = function () {
-	  function Tile(bit, connections) {
-	    _classCallCheck(this, Tile);
-
-	    this.x = bit.x;
-	    this.y = bit.y;
-	    this.connections = connections;
-	    this.isDark = bit.x % 2 !== 0;
-	  }
-
-	  _createClass(Tile, [{
-	    key: 'color',
-	    value: function color(bit) {
-	      if (this.isDark) {
-	        this.bit = bit === '0';
-	      } else {
-	        this.bit = bit === '1';
-	      }
-	    }
-	  }]);
-
-	  return Tile;
-	}();
-
-	var Layer = function () {
-	  function Layer() {
-	    _classCallCheck(this, Layer);
-	  }
-
-	  _createClass(Layer, [{
-	    key: 'up',
-	    value: function up(grid, chunk, coords) {
-	      var point = coords.point;
-	      var rowLength = coords.rowLength;
-
-	      var tiles = [];
-	      for (var i = 0; i < chunk.size / 2; i++) {
-	        var l = chunk.bits[i];
-	        var r = chunk.bits[i + 1];
-
-	        var rpt = point - i * rowLength - 1;
-	        var lpt = point - i * rowLength - 2;
-	        grid.get(rpt).color(l);
-	        grid.get(lpt).color(r);
-	        //
-	        // if (i % 2 === 0) {
-	        //   // even row -> 0 is "dark" 1 is "light"
-	        //   rtile.bit = l === '0';
-	        //   ltile.bit = r === '0';
-	        // } else {
-	        //   // odd row -> 1 is "dark" 0 is "light"
-	        //   rtile.bit = l === '1';
-	        //   ltile.bit = r === '1';
-	        // }
-	        //
-	        // tiles.push(rtile);
-	        // tiles.push(ltile);
-	      }
-
-	      console.log(tiles);
-
-	      return tiles;
-	    }
-	  }, {
-	    key: 'left',
-	    value: function left(grid, chunk, coords) {
-	      var point = coords.point;
-	      var rowLength = coords.rowLength;
-
-	      LEFT.forEach(function (mod, idx) {
-	        var bit = chunk.bits[idx];
-	        var tile = grid.get(point + mod - rowLength);
-	        tile.color(bit);
-	      });
-	    }
-	  }]);
-
-	  return Layer;
-	}();
-
-	function bitwise(operator, string, operand) {
-	  var code = string.charCodeAt(0);
-	  var value;
-	  if (operator === '^') {
-	    value = code ^ operand;
-	  } else if (operator === '<<') {
-	    value = code << operand;
-	  } else if (operator === '>>') {
-	    value = code >> operand;
-	  } else if (operator === '&') {
-	    value = code & operand;
-	  } else if (operator === '|') {
-	    value = code | operand;
-	  } else if (operator === '>>>') {
-	    value = code >>> operand;
-	  } else {
-	    value = code;
-	  }
-
-	  var binaryOfString = code.toString(2);
-	  var binaryOfChange = value.toString(2);
-	  return string + ', as number ' + code + ' -> ' + value + ', went from ' + binaryOfString + ' to ' + binaryOfChange;
+	function convertToInteger(str) {
+	  return str.split('').map(convertToBits);
 	}
 
-	var QRCode = function () {
-	  function QRCode(encodingType, message, size) {
-	    _classCallCheck(this, QRCode);
+	function getNeighborTemplate(size) {
+	  return [-(size + 1), -size, -size + 1, -1, 1, size - 1, size, size + 1];
+	}
 
-	    this._encoding = encodingRules(encodingType);
-	    this.message = message;
-	    this.size = size || 21;
-	    this.fixed = false;
-	    this.grid = this._buildGrid();
-	    this.layerMaker = new Layer();
+	function convertToBits(char) {
+	  char = char.charCodeAt(0).toString(2);
+	  return "0".repeat(8 - char.length) + char;
+	}
+
+	function getFixture(grid, n) {
+	  return grid.filter(function (tile) {
+	    return tile.fixture === n;
+	  });
+	}
+
+	function setupFixture(fixture) {
+	  fixture.forEach(function (tile, idx) {
+	    var row = Math.floor(idx / 7);
+	    var col = idx % 7;
+
+	    if ((row === 1 || row === 5) && col > 0 && col < 6) {
+	      tile.bit = false;
+	    } else if ((col === 1 || col === 5) && row > 0 && row < 6) {
+	      tile.bit = false;
+	    }
+	  });
+	}
+
+	function setupFixtures(grid) {
+	  var fixtures = [getFixture(grid, 1), getFixture(grid, 2), getFixture(grid, 3)];
+	  fixtures.forEach(function (fixture) {
+	    return setupFixture(fixture);
+	  });
+	  return grid;
+	}
+
+	function prerender(tile) {
+	  var col = tile.col;
+	  var row = tile.row;
+
+	  var colSection = Math.ceil((col + 1) / 7);
+	  var rowSection = Math.ceil((row + 1) / 7);
+
+	  if (rowSection === 1 && colSection === 1) {
+	    tile.isFixed = true;
+	    tile.fixture = 1;
+	  } else if (rowSection === 1 && colSection === 3) {
+	    tile.isFixed = true;
+	    tile.fixture = 2;
+	  } else if (rowSection === 3 && colSection === 1) {
+	    tile.fixture = 3;
+	    tile.isFixed = true;
+	  } else {
+	    tile.isFixed = false;
 	  }
 
-	  _createClass(QRCode, [{
-	    key: '_buildGrid',
-	    value: function _buildGrid() {
-	      var map = new Map();
-	      var tileCount = this.size * this.size;
-	      var tile,
-	          connections = {};
-	      for (var i = 0; i < tileCount; i++) {
-	        var x = Math.floor(i / this.size);
-	        var remainder = i - x * this.size;
-	        var y = remainder === this.size ? 0 : remainder;
-	        connections.isKeystone = x % 6 === 0 && y % 6 === 0;
-	        connections.diag = {
-	          ne: i + 1 - this.size,
-	          nw: i - 1 - this.size,
-	          se: i + 1 + this.size,
-	          sw: i - 1 + this.size
-	        };
-	        connections.linear = {
-	          up: i - this.size,
-	          down: i + this.size,
-	          left: i - 1,
-	          right: i + 1
-	        };
+	  tile.bit = tile.isFixed;
 
-	        tile = new Tile({ x: x, y: y }, connections);
-	        map.set(i, tile);
-	      }
+	  return tile;
+	}
 
-	      return map;
-	    }
-	  }, {
-	    key: 'setBlock',
-	    value: function setBlock() {
-	      var layerMaker = this.layerMaker;
-	      var grid = this.grid;
+	function transformGrid(grid, sqrt) {
+	  var bits = arguments.length <= 2 || arguments[2] === undefined ? [] : arguments[2];
 
-	      layerMaker.up(grid, { size: 8, bits: '01110111' }, { point: 441, rowLength: 21 });
-	    }
-	  }, {
-	    key: 'setFixtures',
-	    value: function setFixtures() {
-	      var grid = this.grid;
-	      var encoding = this.encoding;
-	      var size = this.size;
+	  setupFixtures(grid);
+	  for (var i = 0; i < grid.length; i += sqrt) {
+	    var row = grid.slice(i, i + sqrt);
+	    bits.push(row);
+	  }
 
-	      var boundary = Math.sqrt(size) / 3 - 1;
+	  return bits;
+	}
 
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
+	function createGrid(x, y) {
+	  if (x !== y) {
+	    throw "No";
+	  }
+	  var squared = Math.pow(x, 2);
+	  var neighbors = getNeighborTemplate(x);
 
-	      try {
-	        for (var _iterator = grid.entries()[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var _step$value = _slicedToArray(_step.value, 2);
+	  var grid = [];
 
-	          var key = _step$value[0];
-	          var tile = _step$value[1];
+	  for (var i = 0; i < squared; i++) {
+	    var row = Math.floor(i / x),
+	        col = i % x,
+	        tile = neighbors.map(function (n) {
+	      return n + i;
+	    }),
+	        details = {
+	      bit: false,
+	      neighbors: tile,
+	      flip: row % 2 === 0,
+	      isFixed: false,
+	      col: col,
+	      row: row
+	    };
+	    grid.push(details);
+	  }
+	  grid = grid.map(prerender);
+	  return transformGrid(grid, x);
+	}
 
-	          if (key <= boundary) {}
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
-	    }
-	  }, {
-	    key: 'setEncoding',
-	    value: function setEncoding() {
-	      var grid = this.grid;
-	    }
-	  }, {
-	    key: 'encode',
-	    value: function encode() {
-	      var chars = this.message.split('');
-	      this.encoding = chars.map(function (b) {
-	        var binary = b.charCodeAt(0).toString(2);
-	        if (binary.length === 7) {
-	          binary = '0' + binary;
-	        } else if (binary.length === 6) {
-	          binary = '00' + binary;
-	        }
+	function createQRCode(string) {
+	  var bits = convertToInteger(string);
+	  return bits;
+	}
 
-	        return binary.split('');
-	      });
-	    }
-	  }, {
-	    key: 'row',
-	    value: function row(x) {
-	      return this.encoding[x];
-	    }
-	  }, {
-	    key: 'column',
-	    value: function column(y) {
-	      // return this.encoding.map((row, i) => {
-	      //   return row[i];
-	      // });
-	    }
-	  }]);
-
-	  return QRCode;
-	}();
-
-	exports.default = QRCode;
+	exports.getNeighborTemplate = getNeighborTemplate;
+	exports.createGrid = createGrid;
+	exports.createQRCode = createQRCode;
 
 /***/ }
 /******/ ]);

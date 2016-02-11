@@ -1,4 +1,4 @@
-import QRCode from './classes';
+import { createGrid, getNeighborTemplate, createQRCode } from './classes';
 
 function convertToBin(str) {
   var binary = [];
@@ -39,8 +39,8 @@ var Block = React.createClass({
 var Row = React.createClass({
   render() {
     var baseClass = 'bit ';
-    var blocks = this.props.bit.map(function(bit, i) {
-      var bitClassName = baseClass + (bit ? 'bit-less' : 'bit-full') + ' col-xs-6';
+    var blocks = this.props.row.map(function(tile, i) {
+      var bitClassName = baseClass + (tile.bit ? 'bit-full' : 'bit-less') + ' col-xs-6';
       return <Block key={i} bit={bitClassName} />
     })
     return (
@@ -54,31 +54,13 @@ var Row = React.createClass({
 
 var QR = React.createClass({
   getInitialState() {
-    var bits = [];
-    for (var i = 0; i < 21; i++) {
-      // bits.push(makeRow(i));
-    }
-    return { bits }
-  },
-
-  shuffleBits(bits) {
-    this.setState({
-      bits: this.state.bits.map(function(bit){
-        return bit.map(function(b){
-          var n = Math.random();
-          return n > 0.5;
-        })
-      })
-    });
-  },
-
-  componentWillMount() {
-    // setInterval(this.shuffleBits, 1000);
+    return {};
+    // return { grid }
   },
 
   render() {
-    var bits = this.state.bits.map(function(bit, i){
-      return <Row bit={bit} key={i} />
+    var bits = this.props.grid.map(function(row, i){
+      return <Row row={row} key={i} />
     });
     return (
       <div className='container'>
@@ -90,12 +72,17 @@ var QR = React.createClass({
 
 convertToBin('matt');
 
-function showReact() {
+function showReact(size, grid=false) {
+  grid = createGrid(21, 21);
   ReactDOM.render(
-    <QR />,
+    <QR size={size} grid={grid}/>,
     document.getElementById('render')
   );
+  return grid;
 }
 
+// window.reactify = showReact;
 window.onload = showReact;
-window.QRCode = QRCode;
+window.getNeighborTemplate = getNeighborTemplate;
+window.createGrid = createGrid;
+window.createQRCode = createQRCode;

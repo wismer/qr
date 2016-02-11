@@ -1,8 +1,8 @@
 module.exports = {
-    entry: "./pre-compiled/*.js",
+    entry: "./src/pre-compiled/main.js",
     output: {
         path: __dirname,
-        filename: "../public/js/compiled/main.js"
+        filename: "./public/js/compiled/main.js"
     },
     module: {
       loaders: [
