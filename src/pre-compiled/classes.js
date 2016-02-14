@@ -1,7 +1,47 @@
+import QRCodeGenerator from './qr';
+
+function buildSegment(binary, bits, direction, pos, type='msg') {
+  let size = Math.sqrt(bits.length);
+  bits[Symbol.iterator] = function*(){
+    var upto = pos - (size * 8);
+    var nextTile = this[upto];
+    let [total, count] = [0, 0];
+    while (typeof nextTile !== 'undefined' && pos > 0) {
+      if (pos === bits.length - 1) {
+        console.log(this.count);
+        // encoding segment
+        count = yield [
+          this[pos],
+          this[pos - 1],
+          this[pos -= size],
+          this[pos - 1]
+        ];
+      } else {
+        // messages and msg length segments
+        count = yield [
+          this[pos],
+          this[pos - 1],
+          this[pos -= size],
+          this[pos - 1],
+          this[pos -= size],
+          this[pos - 1],
+          this[pos -= size],
+          this[pos - 1]
+        ];
+        debugger
+      }
+      this.count += count.length;
+      nextTile = this[pos -= size];
+    }
+
+    return null;
+  };
 
 
-const LEFT = [0, -1, 0, -1, -2, -3, -2, -3];
-const UP   = ['w', 'ne', 'w', 'ne', 'w', 'nw', 'w'];
+  for (var bit of bits) {
+    console.log(bit.count);
+  }
+}
 
 const NUMERIC = 1,
       ALPHANUMERIC = 2,
@@ -96,8 +136,35 @@ function prerender(tile) {
   return tile;
 }
 
-function transformGrid(grid, sqrt, bits=[]) {
+function populateBits(bits, encoding, msg) {
+  // encoding
+  let startPos = buildSegment('0100', bits, 'up', bits.length - 1);
+  return bits;
+}
+
+function transformGrid(grid, sqrt, encoding, msg, bits=[]) {
   setupFixtures(grid);
+
+  // set encoding
+
+
+
+
+  // set length
+
+
+
+  // set message
+
+
+
+  // set error correct
+
+  // setEncoding(grid, encoding);
+  // setLength(grid, msg.length);
+  // setMsg(grid, msg);
+  // setErrorCorrect(grid, msg);
+  grid = populateBits(grid, encoding, msg);
   for (var i = 0; i < grid.length; i += sqrt) {
     var row = grid.slice(i, i + sqrt);
     bits.push(row);
@@ -106,12 +173,13 @@ function transformGrid(grid, sqrt, bits=[]) {
   return bits;
 }
 
-function createGrid(x, y) {
+function createGrid(x, y, message='www.wikipedia.org') {
   if (x !== y) {
     throw "No";
   }
   const squared   = Math.pow(x, 2);
   const neighbors = getNeighborTemplate(x);
+  const encoding  = 3;
 
   let grid = [];
 
@@ -130,7 +198,7 @@ function createGrid(x, y) {
     grid.push(details);
   }
   grid = grid.map(prerender);
-  return transformGrid(grid, x);
+  return transformGrid(grid, x, encoding, message);
 }
 
 function createQRCode(string) {

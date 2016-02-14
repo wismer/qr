@@ -1,4 +1,5 @@
-import { createGrid, getNeighborTemplate, createQRCode } from './classes';
+import "babel-polyfill";
+import { createGrid, getNeighborTemplate, createQRCode, compass } from './classes';
 
 function convertToBin(str) {
   var binary = [];
@@ -40,6 +41,9 @@ var Row = React.createClass({
   render() {
     var baseClass = 'bit ';
     var blocks = this.props.row.map(function(tile, i) {
+      // if (!tile.isFixed) {
+      //   tile.bit = Math.random() > 0.5;
+      // }
       var bitClassName = baseClass + (tile.bit ? 'bit-full' : 'bit-less') + ' col-xs-6';
       return <Block key={i} bit={bitClassName} />
     })
@@ -82,6 +86,7 @@ function showReact(size, grid=false) {
 }
 
 // window.reactify = showReact;
+window.compass = compass;
 window.onload = showReact;
 window.getNeighborTemplate = getNeighborTemplate;
 window.createGrid = createGrid;
