@@ -1,17 +1,45 @@
+body {
+  background-color: #DCDCDC;
+}
+
 .bit {
   height: 50px;
   width: 50px;
   padding: 0px;
+  margin: 0;
+  border: 0.5px solid black;
+  display: inline-block;
+}
+
+.subset {
+  min-height: 110px;
+}
+
+.chunk {
+  padding-top: 20px;
+  padding-bottom: 10px;
+  margin: 1px;
+  border: 1px solid #DCDCDC;
+}
+
+.chunk-active {
+  background-color: #6B6262;
+  border: 1px solid #333;
 }
 
 .bit-less {
   background-color: white;
+  margin: 0;
+  text-align: center;
+  font-size: 2em;
+  color: black;
 }
 
 .bit-full {
   background-color: black;
+  margin: 0;
+  text-align: center;
+  font-size: 2em;
+  color: white;
 }
 
-.row {
-  margin: 0 auto;
-}

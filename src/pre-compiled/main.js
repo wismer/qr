@@ -1,93 +1,177 @@
 import "babel-polyfill";
-import { createGrid, getNeighborTemplate, createQRCode, compass } from './classes';
+import caesarCipher from './caesar';
+const ALPHABET  = [...'abcdefghijklmnopqrstuvwxyz'];
 
-function convertToBin(str) {
-  var binary = [];
-  for (var i = 0; i < str.length; i++) {
-    var code = str.charCodeAt(i).toString(2);
-    if (code.length === 7) {
-      code = '0' + code;
+var Chunk = React.createClass({
+  getInitialState() {
+    return { active: false };
+  },
+
+  handleMouseEnter(didEnter) {
+    this.setState({ active: didEnter }, () => {
+      // console.log('why', didEnter);
+    });
+  },
+
+  render() {
+    var className = 'row chunk';
+    var meta = this.props.meta;
+
+    if (this.state.active) {
+      className += ' chunk-active';
     }
 
-    binary.push(code.split(''));
-  }
+    var value = (meta.value ^ 32) - 21;
+    var letter;
 
-  return binary;
-}
+    if (value < 0) {
+      letter = ALPHABET[value + 25];
+    } else {
+      letter = ALPHABET[value];
+    }
 
+    letter = this.state.active ? letter : '';
 
-function toNumberFromMSB(binary) {
-  var n = 0;
-  // var p = 0;
-  for (var i = 0; i < binary.length; i++) {
-    var c = parseInt(binary[i]);
-    console.log("2 to the power of " + i, c, Math.pow(2, i));
-    n += (c * Math.pow(2, i));
-  }
-
-  return n;
-}
-
-
-var Block = React.createClass({
-  render() {
     return (
-      <div className={this.props.bit}></div>
-    )
+      <div className={className} onMouseEnter={this.handleMouseEnter.bind(this, true)} onMouseLeave={this.handleMouseEnter.bind(this, false)}>
+        <div className='col-xs-4 subset'>
+          <div className='top-row'>
+            <Row tiles={this.props.top} />
+          </div>
+          <div className='bottom-row'>
+            <Row tiles={this.props.bottom} />
+          </div>
+        </div>
+
+        <div className='col-xs-4 subset'>
+          {meta.bits}
+        </div>
+
+        <div className='col-xs-4 subset'>
+          {letter}
+        </div>
+      </div>
+    );
   }
 });
 
 var Row = React.createClass({
   render() {
-    var baseClass = 'bit ';
-    var blocks = this.props.row.map(function(tile, i) {
-      // if (!tile.isFixed) {
-      //   tile.bit = Math.random() > 0.5;
-      // }
-      var bitClassName = baseClass + (tile.bit ? 'bit-full' : 'bit-less') + ' col-xs-6';
-      return <Block key={i} bit={bitClassName} />
-    })
+    var translation = '';
+    var tiles = this.props.tiles.map((tile, key) => {
+      var divClass = tile === '1' ? 'bit-full' : 'bit-less';
+      return (
+        <div key={key} className={'bit ' + divClass}></div>
+      );
+    });
     return (
-      <div className='row'>
-        {blocks}
+      <div>
+        <div className='bit-code'>
+          {tiles}
+        </div>
+
+        <div className='translation'>
+          {translation}
+        </div>
+      </div>
+    )
+  }
+})
+
+var StringInput = React.createClass({
+
+  render() {
+    return (
+      <div className='string-input'>
+        <div>
+          <label>Enter in Something</label>
+          <input type='text' name='string' defaultValue=''></input>
+        </div>
+        <div>
+          <label>Enter in Key</label>
+          <input type='text' name='key' defaultValue=''></input>
+        </div>
+        <div>
+          <input type='button' onclick={this.handleClick}></input>
+        </div>
       </div>
     )
   }
 });
 
-
-var QR = React.createClass({
+var CaesarCipher = React.createClass({
   getInitialState() {
-    return {};
-    // return { grid }
+    var state = caesarCipher('the gauls advance');
+    state.text = '';
+    return state;
+  },
+
+  handleChange(e) {
+    var state = caesarCipher(e.target.value);
+    state.text = e.target.value;
+    this.setState(state);
   },
 
   render() {
-    var bits = this.props.grid.map(function(row, i){
-      return <Row row={row} key={i} />
+    var crap = this.state.payload;
+    var defuck = this.state.defuck;
+
+    var payload = crap.message.map((m, i) => {
+      return (
+        <div key={i}>
+          <Chunk {...m} isMessageChunk={true} />
+        </div>
+      );
     });
+
     return (
       <div className='container'>
-        {bits}
+        <div className='string-input'>
+          <div>
+            <label>Enter in Something</label>
+            <input type='text' name='string' defaultValue='' value={this.state.text} onChange={this.handleChange}></input>
+          </div>
+          <div>
+            <label>Enter in Key</label>
+            <input type='text' name='key' defaultValue='' ></input>
+          </div>
+          <div>
+            <button onclick={this.handleClick}>OK</button>
+          </div>
+        </div>
+
+        <div className='row'>
+          <div>
+            <Chunk {...crap.encoding} />
+          </div>
+
+          <div>
+            <Chunk {...crap.msgLength} />
+          </div>
+
+          <div>
+            <Chunk {...crap.msgKey} />
+          </div>
+
+          {payload}
+        </div>
       </div>
     )
   }
 });
 
-convertToBin('matt');
 
-function showReact(size, grid=false) {
-  grid = createGrid(21, 21);
+
+window.caesarCipher = caesarCipher;
+window.onload = function() {
   ReactDOM.render(
-    <QR size={size} grid={grid}/>,
+    <CaesarCipher />,
     document.getElementById('render')
-  );
-  return grid;
+  )
 }
-
 // window.reactify = showReact;
-window.compass = compass;
-window.onload = showReact;
-window.getNeighborTemplate = getNeighborTemplate;
-window.createGrid = createGrid;
-window.createQRCode = createQRCode;
+// window.compass = compass;
+// window.onload = showReact;
+// window.getNeighborTemplate = getNeighborTemplate;
+// window.createGrid = createGrid;
+// window.createQRCode = createQRCode;
