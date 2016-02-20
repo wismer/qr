@@ -34,7 +34,7 @@ var Chunk = React.createClass({
 
     return (
       <div className={className} onMouseEnter={this.handleMouseEnter.bind(this, true)} onMouseLeave={this.handleMouseEnter.bind(this, false)}>
-        <div className='col-xs-4 subset'>
+        <div className='col-xs-5 subset'>
           <div className='top-row'>
             <Row tiles={this.props.top} />
           </div>
@@ -143,6 +143,10 @@ var CaesarCipher = React.createClass({
         <div className='row'>
           <div>
             <Chunk {...crap.encoding} />
+          </div>
+
+          <div>
+            <Chunk {...crap.bitfield} />
           </div>
 
           <div>
