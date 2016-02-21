@@ -1,3 +1,6 @@
+import { Bit } from './binary';
+
+const BIT8 = 8;
 const OPERATORS = [
   { symbol: '^', meaning: 'XOR', explanation: 'todo' },
   { symbol: '|', meaning: 'TODO', explanation: 'todo' },
@@ -15,19 +18,6 @@ function convert8bits(bits) {
   return ('0'.repeat(8 - bits.length) + bits).split('');
 }
 
-let Bit = React.createClass({
-  handleClick() {
-    this.props.bitSelect(this.props.key);
-  },
-
-  render() {
-    var className = this.props.bit === '1' ? 'bit bit-full' : 'bit bit-less';
-    className += ' col-md-4';
-    return (
-      <div key={this.props.key} onClick={this.handleClick} className={className}>{this.props.bit}</div>
-    );
-  }
-});
 
 let BitWiseOutput = React.createClass({
   handleBitSelection(i) {
@@ -36,7 +26,7 @@ let BitWiseOutput = React.createClass({
     }
     var number = this.props.number;
     var bits = number.toString(2);
-    bits = ('0'.repeat(8 - bits.length) + bits).split('');
+    bits = ('0'.repeat(BIT8 - bits.length) + bits).split('');
     bits[i] = bits[i] === '0' ? '1' : '0';
     var operand = parseInt(bits.join(''), 2);
     this.props.changeOperand(operand);
@@ -45,8 +35,14 @@ let BitWiseOutput = React.createClass({
   render() {
     var className = this.props.fixed ? 'chunk' : 'chunk chunk-operand';
     var number = this.props.number.toString(2);
-    number = ('0'.repeat(8 - number.length) + number).split('');
+    if (number.length > BIT8) {
+      number = number.split('').slice(number.length - BIT8, number.length);
+    } else {
+      number = ('0'.repeat(BIT8 - number.length) + number).split('');
+    }
+
     var bits = number.map((bit, i) => <Bit bitSelect={this.handleBitSelection.bind(this, i)} key={i} bit={bit} />);
+
     return (
       <div className={className + ' row'}>
         {bits}
@@ -148,7 +144,7 @@ let BitWise = React.createClass({
 
   render() {
     return (
-      <div className='container'>
+      <div>
         <div className='randomize'>
           <button onClick={this.randomizeNumber}>Click to Start</button>
         </div>

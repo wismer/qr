@@ -6125,13 +6125,17 @@
 
 /***/ },
 /* 193 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+
+	var _binary = __webpack_require__(194);
+
+	var BIT8 = 8;
 	var OPERATORS = [{ symbol: '^', meaning: 'XOR', explanation: 'todo' }, { symbol: '|', meaning: 'TODO', explanation: 'todo' }, { symbol: '&', meaning: 'TODO', explanation: 'todo' }, { symbol: '<<', meaning: 'TODO', explanation: 'todo' }, { symbol: '>>', meaning: 'TODO', explanation: 'todo' }, { symbol: '~', meaning: 'TODO', explanation: 'todo' }];
 
 	// i should start doing this for comments....
@@ -6142,22 +6146,6 @@
 	  return ('0'.repeat(8 - bits.length) + bits).split('');
 	}
 
-	var Bit = React.createClass({
-	  displayName: 'Bit',
-	  handleClick: function handleClick() {
-	    this.props.bitSelect(this.props.key);
-	  },
-	  render: function render() {
-	    var className = this.props.bit === '1' ? 'bit bit-full' : 'bit bit-less';
-	    className += ' col-md-4';
-	    return React.createElement(
-	      'div',
-	      { key: this.props.key, onClick: this.handleClick, className: className },
-	      this.props.bit
-	    );
-	  }
-	});
-
 	var BitWiseOutput = React.createClass({
 	  displayName: 'BitWiseOutput',
 	  handleBitSelection: function handleBitSelection(i) {
@@ -6166,7 +6154,7 @@
 	    }
 	    var number = this.props.number;
 	    var bits = number.toString(2);
-	    bits = ('0'.repeat(8 - bits.length) + bits).split('');
+	    bits = ('0'.repeat(BIT8 - bits.length) + bits).split('');
 	    bits[i] = bits[i] === '0' ? '1' : '0';
 	    var operand = parseInt(bits.join(''), 2);
 	    this.props.changeOperand(operand);
@@ -6176,10 +6164,16 @@
 
 	    var className = this.props.fixed ? 'chunk' : 'chunk chunk-operand';
 	    var number = this.props.number.toString(2);
-	    number = ('0'.repeat(8 - number.length) + number).split('');
+	    if (number.length > BIT8) {
+	      number = number.split('').slice(number.length - BIT8, number.length);
+	    } else {
+	      number = ('0'.repeat(BIT8 - number.length) + number).split('');
+	    }
+
 	    var bits = number.map(function (bit, i) {
-	      return React.createElement(Bit, { bitSelect: _this.handleBitSelection.bind(_this, i), key: i, bit: bit });
+	      return React.createElement(_binary.Bit, { bitSelect: _this.handleBitSelection.bind(_this, i), key: i, bit: bit });
 	    });
+
 	    return React.createElement(
 	      'div',
 	      { className: className + ' row' },
@@ -6287,7 +6281,7 @@
 	  render: function render() {
 	    return React.createElement(
 	      'div',
-	      { className: 'container' },
+	      null,
 	      React.createElement(
 	        'div',
 	        { className: 'randomize' },
@@ -6322,6 +6316,33 @@
 	});
 
 	exports.default = BitWise;
+
+/***/ },
+/* 194 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var Bit = React.createClass({
+	  displayName: 'Bit',
+	  handleClick: function handleClick() {
+	    this.props.bitSelect(this.props.key);
+	  },
+	  render: function render() {
+	    var className = this.props.bit === '1' ? 'bit bit-full' : 'bit bit-less';
+	    className += ' col-md-4';
+	    return React.createElement(
+	      'div',
+	      { key: this.props.key, onClick: this.handleClick, className: className },
+	      this.props.bit
+	    );
+	  }
+	});
+
+	exports.Bit = Bit;
 
 /***/ }
 /******/ ]);
