@@ -11,6 +11,16 @@ body {
   display: inline-block;
 }
 
+.operator {
+  height: 75px;
+  width: 75px;
+  text-align: center;
+  background-color: white;
+  margin: 1px;
+  border: 1px solid black;
+  cursor: pointer;
+}
+
 .subset {
   min-height: 110px;
 }
@@ -20,6 +30,10 @@ body {
   padding-bottom: 10px;
   margin: 1px;
   border: 1px solid #DCDCDC;
+}
+
+.chunk-operand {
+  cursor: pointer;
 }
 
 .chunk-active {
@@ -33,6 +47,33 @@ body {
   text-align: center;
   font-size: 2em;
   color: black;
+}
+
+.eq {
+  margin-left: 10px;
+}
+
+.num {
+  margin-left: 10px;
+  min-width: 200px;
+}
+
+.operator {
+  float: left;
+  background-color: white;
+  color: black;
+  display: inline-block;
+}
+
+.operator:hover {
+  background-color: black;
+  color: white;
+}
+
+.operator-row {
+  margin: 0 auto;
+  display: inline-block;
+  font-size: 2.2em;
 }
 
 .bit-full {

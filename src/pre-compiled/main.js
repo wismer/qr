@@ -1,5 +1,7 @@
 import "babel-polyfill";
 import caesarCipher from './caesar';
+import BitWise from './bitwise';
+
 const ALPHABET  = [...'abcdefghijklmnopqrstuvwxyz'];
 
 var Chunk = React.createClass({
@@ -169,10 +171,16 @@ var CaesarCipher = React.createClass({
 window.caesarCipher = caesarCipher;
 window.onload = function() {
   ReactDOM.render(
-    <CaesarCipher />,
+    <BitWise />,
     document.getElementById('render')
   )
 }
+// window.onload = function() {
+//   ReactDOM.render(
+//     <CaesarCipher />,
+//     document.getElementById('render')
+//   )
+// }
 // window.reactify = showReact;
 // window.compass = compass;
 // window.onload = showReact;
